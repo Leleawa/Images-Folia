@@ -23,6 +23,7 @@
  */
 package com.andavin.images;
 
+import com.andavin.FoliaScheduler;
 import com.andavin.images.PacketListener.ImageListener;
 import com.andavin.images.command.CommandRegistry;
 import com.andavin.images.data.DataManager;
@@ -99,6 +100,7 @@ public class Images extends JavaPlugin implements Listener {
         instance = this;
         Logger.initialize(this.getLogger());
         imagesDirectory = this.getDataFolder();
+        FoliaScheduler.init(this);
         PacketListener.getImages = () -> IMAGES;
         setFieldValue(Scheduler.class, null, "instance", this);
         setFieldValue(TimeoutMetadata.class, null, "instance", this);

@@ -23,7 +23,8 @@
  */
 package com.andavin.util;
 
-import org.bukkit.Bukkit;
+import com.andavin.FoliaScheduler;
+import com.github.Anon8281.universalScheduler.scheduling.tasks.MyScheduledTask;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
@@ -46,7 +47,6 @@ import java.util.function.Supplier;
  */
 @SuppressWarnings("UnusedReturnValue")
 public final class Scheduler {
-
     private static Plugin instance;
 
     /**
@@ -56,8 +56,8 @@ public final class Scheduler {
      * @param run The {@link Runnable} to execute.
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
-    public static BukkitTask sync(Runnable run) {
-        return Bukkit.getScheduler().runTask(instance, run);
+    public static MyScheduledTask sync(Runnable run) {
+        return FoliaScheduler.getScheduler().runTask(run);
     }
 
     /**
@@ -67,8 +67,8 @@ public final class Scheduler {
      * @param run The {@link Runnable} to execute.
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
-    public static BukkitTask async(Runnable run) {
-        return Bukkit.getScheduler().runTaskAsynchronously(instance, run);
+    public static MyScheduledTask async(Runnable run) {
+        return FoliaScheduler.getScheduler().runTaskAsynchronously(run);
     }
 
     /**
@@ -79,8 +79,8 @@ public final class Scheduler {
      * @param delay The ticks (1 tick = 50 milliseconds, 20 ticks = 1 second) after which to run the task.
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
-    public static BukkitTask later(Runnable run, long delay) {
-        return Bukkit.getScheduler().runTaskLater(instance, run, delay);
+    public static MyScheduledTask later(Runnable run, long delay) {
+        return FoliaScheduler.getScheduler().runTaskLater(run, delay);
     }
 
     /**
@@ -91,8 +91,8 @@ public final class Scheduler {
      * @param delay The ticks (1 tick = 50 milliseconds, 20 ticks = 1 second) after which to run the task.
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
-    public static BukkitTask laterAsync(Runnable run, long delay) {
-        return Bukkit.getScheduler().runTaskLaterAsynchronously(instance, run, delay);
+    public static MyScheduledTask laterAsync(Runnable run, long delay) {
+        return FoliaScheduler.getScheduler().runTaskLaterAsynchronously(run, delay);
     }
 
     /**
@@ -104,8 +104,8 @@ public final class Scheduler {
      * @param period The period in ticks to wait until running again after each run.
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
-    public static BukkitTask repeat(Runnable run, long delay, long period) {
-        return Bukkit.getScheduler().runTaskTimer(instance, run, delay, period);
+    public static MyScheduledTask repeat(Runnable run, long delay, long period) {
+        return FoliaScheduler.getScheduler().runTaskTimer(run, delay, period);
     }
 
     /**
@@ -117,8 +117,8 @@ public final class Scheduler {
      * @param period The period in ticks to wait until running again after each run.
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
-    public static BukkitTask repeatAsync(Runnable run, long delay, long period) {
-        return Bukkit.getScheduler().runTaskTimerAsynchronously(instance, run, delay, period);
+    public static MyScheduledTask repeatAsync(Runnable run, long delay, long period) {
+        return FoliaScheduler.getScheduler().runTaskTimerAsynchronously(run, delay, period);
     }
 
     /**
@@ -137,7 +137,7 @@ public final class Scheduler {
      *              {@code true} the task will be cancelled.
      * @return The {@link BukkitTask task} that was scheduled.
      */
-    public static BukkitTask repeatUntil(Runnable run, long delay, long period, BooleanSupplier until) {
+    public static MyScheduledTask repeatUntil(Runnable run, long delay, long period, BooleanSupplier until) {
         return repeatWhile(run, delay, period, () -> !until.getAsBoolean());
     }
 
@@ -157,7 +157,7 @@ public final class Scheduler {
      *         When this returns {@code true} the task will be cancelled.
      * @return The {@link BukkitTask task} that was scheduled.
      */
-    public static BukkitTask repeatAsyncUntil(Runnable run, long delay, long period, BooleanSupplier until) {
+    public static MyScheduledTask repeatAsyncUntil(Runnable run, long delay, long period, BooleanSupplier until) {
         return repeatAsyncWhile(run, delay, period, () -> !until.getAsBoolean());
     }
 
@@ -178,11 +178,11 @@ public final class Scheduler {
      *                  in order for the task to continue to run.
      * @return The {@link BukkitTask task} that was scheduled.
      */
-    public static BukkitTask repeatWhile(Runnable run, long delay, long period, BooleanSupplier condition) {
+    public static MyScheduledTask repeatWhile(Runnable run, long delay, long period, BooleanSupplier condition) {
         Task task = new Task(run, condition);
-        BukkitTask bukkitTask = repeat(task, delay, period);
-        task.setTask(bukkitTask);
-        return bukkitTask;
+        MyScheduledTask myScheduledTask = repeat(task, delay, period);
+        task.setTask(myScheduledTask);
+        return myScheduledTask;
     }
 
     /**
@@ -202,11 +202,11 @@ public final class Scheduler {
      *                  in order for the task to continue to run.
      * @return The {@link BukkitTask task} that was scheduled.
      */
-    public static BukkitTask repeatAsyncWhile(Runnable run, long delay, long period, BooleanSupplier condition) {
+    public static MyScheduledTask repeatAsyncWhile(Runnable run, long delay, long period, BooleanSupplier condition) {
         Task task = new Task(run, condition);
-        BukkitTask bukkitTask = repeatAsync(task, delay, period);
-        task.setTask(bukkitTask);
-        return bukkitTask;
+        MyScheduledTask myScheduledTask = repeatAsync(task, delay, period);
+        task.setTask(myScheduledTask);
+        return myScheduledTask;
     }
 
     /**
@@ -226,11 +226,11 @@ public final class Scheduler {
      * @param count The amount of executions to allow before cancelling.
      * @return The {@link BukkitTask task} that was scheduled.
      */
-    public static BukkitTask repeatFor(IntConsumer consumer, long delay, long period, int count) {
+    public static MyScheduledTask repeatFor(IntConsumer consumer, long delay, long period, int count) {
         Task task = new IncrementTask(consumer, count);
-        BukkitTask bukkitTask = repeat(task, delay, period);
-        task.setTask(bukkitTask);
-        return bukkitTask;
+        MyScheduledTask myScheduledTask = repeat(task, delay, period);
+        task.setTask(myScheduledTask);
+        return myScheduledTask;
     }
 
     /**
@@ -250,11 +250,11 @@ public final class Scheduler {
      * @param count The amount of executions to allow before cancelling.
      * @return The {@link BukkitTask task} that was scheduled.
      */
-    public static BukkitTask repeatAsyncFor(IntConsumer consumer, long delay, long period, int count) {
+    public static MyScheduledTask repeatAsyncFor(IntConsumer consumer, long delay, long period, int count) {
         Task task = new IncrementTask(consumer, count);
-        BukkitTask bukkitTask = repeatAsync(task, delay, period);
-        task.setTask(bukkitTask);
-        return bukkitTask;
+        MyScheduledTask myScheduledTask = repeatAsync(task, delay, period);
+        task.setTask(myScheduledTask);
+        return myScheduledTask;
     }
 
     /**
@@ -278,12 +278,12 @@ public final class Scheduler {
      * @param unit The {@link TimeUnit} to multiply the duration by.
      * @return The {@link BukkitTask task} that was scheduled.
      */
-    public static BukkitTask repeatFor(Runnable run, long delay, long period, long duration, TimeUnit unit) {
+    public static MyScheduledTask repeatFor(Runnable run, long delay, long period, long duration, TimeUnit unit) {
         long until = unit.toMillis(duration);
         Task task = new Task(run, () -> System.currentTimeMillis() < until);
-        BukkitTask bukkitTask = repeat(task, delay, period);
-        task.setTask(bukkitTask);
-        return bukkitTask;
+        MyScheduledTask myScheduledTask = repeat(task, delay, period);
+        task.setTask(myScheduledTask);
+        return myScheduledTask;
     }
 
     /**
@@ -307,17 +307,17 @@ public final class Scheduler {
      * @param unit The {@link TimeUnit} to multiply the duration by.
      * @return The {@link BukkitTask task} that was scheduled.
      */
-    public static BukkitTask repeatAsyncFor(Runnable run, long delay, long period, long duration, TimeUnit unit) {
+    public static MyScheduledTask repeatAsyncFor(Runnable run, long delay, long period, long duration, TimeUnit unit) {
         long until = unit.toMillis(duration);
         Task task = new Task(run, () -> System.currentTimeMillis() < until);
-        BukkitTask bukkitTask = repeatAsync(task, delay, period);
-        task.setTask(bukkitTask);
-        return bukkitTask;
+        MyScheduledTask myScheduledTask = repeatAsync(task, delay, period);
+        task.setTask(myScheduledTask);
+        return myScheduledTask;
     }
 
     private static class Task implements Runnable {
 
-        BukkitTask task;
+        MyScheduledTask task;
         boolean cancelled;
         private final Runnable runnable;
         private final BooleanSupplier condition;
@@ -333,7 +333,7 @@ public final class Scheduler {
          *
          * @param task The task.
          */
-        final void setTask(BukkitTask task) {
+        final void setTask(MyScheduledTask task) {
             this.task = task;
         }
 
