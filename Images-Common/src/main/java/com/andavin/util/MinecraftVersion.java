@@ -179,7 +179,14 @@ public enum MinecraftVersion {
      * This is only the major version of the game while minor
      * versions can be retrieved via the {@link MinorVersion#CURRENT}.
      */
-    v1_23;
+    v1_23,
+
+    /**
+     * The representation of the Minecraft version {@code 26}.
+     * This is only the major version of the game while minor
+     * versions can be retrieved via the {@link MinorVersion#CURRENT}.
+     */
+    v26;
 
     /**
      * The current {@link MinecraftVersion} of this server.
@@ -375,7 +382,13 @@ public enum MinecraftVersion {
         String bukkitVersion = server.getBukkitVersion();
         String version = bukkitVersion.substring(0, bukkitVersion.indexOf('-'));
         String[] versionParts = StringUtils.split(version, '.');
-        return 'v' + versionParts[0] + '_' + versionParts[1];
+        if (versionParts[0].equals("1")) {
+            return 'v' + versionParts[0] + '_' + versionParts[1];
+        } else {
+            // NOTE: anything that doesn't start with "1" is the new
+            // year-based versioning scheme starting with "26"
+            return 'v' + versionParts[0];
+        }
     }
 
     /**
@@ -421,9 +434,17 @@ public enum MinecraftVersion {
         }
 
         private static String matchVersion(String version) {
+
+            if (version.endsWith(".build")) { // Paper experimental versions
+                version = version.substring(0, version.length() - ".build".length());
+            }
+
             switch (version) {
                 case "1.21":
                 case "1.21.1":
+                case "26.1":
+                case "26.1.1":
+                case "26.1.2":
                     return "R1";
                 case "1.21.3":
                     return "R2";

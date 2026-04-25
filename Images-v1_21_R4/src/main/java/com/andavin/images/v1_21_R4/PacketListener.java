@@ -28,6 +28,8 @@ import com.andavin.reflect.FieldMatcher;
 import com.andavin.reflect.MethodMatcher;
 import com.andavin.reflect.exception.UncheckedNoSuchMethodException;
 import com.andavin.util.Scheduler;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.Connection;
@@ -39,17 +41,17 @@ import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.decoration.ItemFrame;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MapItem;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.craftbukkit.v1_21_R4.entity.CraftPlayer;
 import org.bukkit.entity.Player;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 import static com.andavin.reflect.Reflection.*;
 
@@ -139,11 +141,18 @@ class PacketListener extends com.andavin.images.PacketListener<ServerboundIntera
                 player.sendMessage("§cCannot create map. Unknown map data...");
             }
 
-            tryPickItem(((CraftPlayer) player).getHandle().connection, item);
+            tryPickItem(((CraftPlayer) player).getHandle().connection, item, world);
         });
     }
 
-    private static void tryPickItem(ServerGamePacketListenerImpl connection, ItemStack item) { // Access to the private method
-        invokeMethod(TRY_PICK_ITEM, connection, item);
+    private static void tryPickItem(ServerGamePacketListenerImpl connection, ItemStack item, Level level) {
+        if (TRY_PICK_ITEM.getParameterCount() == 1) {
+            invokeMethod(TRY_PICK_ITEM, connection, item);
+        } else {
+            // NOTE: create an entity to prevent an NPE, but isn't the real entity
+            // This may cause some plugins a minor confusion, but I think it'll be okay
+            ItemFrame frame = new ItemFrame(EntityType.ITEM_FRAME, level);
+            invokeMethod(TRY_PICK_ITEM, connection, item, null, frame, true);
+        }
     }
 }
