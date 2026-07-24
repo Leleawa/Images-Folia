@@ -22,6 +22,7 @@
         <module>Images-v1_21_R6</module>
         <module>Images-v1_21_R7</module>
         <module>Images-v26_R1</module>
+        <module>Images-v26_R2</module>
     </modules>
     <packaging>pom</packaging>
 

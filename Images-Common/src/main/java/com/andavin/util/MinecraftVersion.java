@@ -447,6 +447,7 @@ public enum MinecraftVersion {
                 case "26.1.2":
                     return "R1";
                 case "1.21.3":
+                case "26.2":
                     return "R2";
                 case "1.21.4":
                     return "R3";
