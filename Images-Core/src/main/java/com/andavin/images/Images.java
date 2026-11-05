@@ -194,6 +194,9 @@ public class Images extends JavaPlugin implements Listener {
 
         Player player = event.getPlayer();
         Location location = player.getLocation();
+        // Clear any shown state left over from a previous session of this UUID
+        // (e.g. a quick reconnect) so every image is sent again to the new connection
+        forgetPlayer(player);
         Scheduler.laterAsync(() -> this.refreshImages(player, location), 20L);
         if (protocolLib) {
             return;
@@ -202,7 +205,7 @@ public class Images extends JavaPlugin implements Listener {
         Runnable intercept = () -> {
             // If the player was immediately kicked, don't set the 
             // listener to prevent an exception being thrown
-            if (!player.isOnline()) return;
+            if (!isCurrent(player)) return;
             BRIDGE.setEntityListener(player, (clicker, image, section, action, hand) -> {
 
                 ImageListener listener = LISTENER_TASKS.remove(clicker.getUniqueId());
@@ -225,17 +228,8 @@ public class Images extends JavaPlugin implements Listener {
     public void onQuit(PlayerQuitEvent event) {
 
         Player player = event.getPlayer();
-        Scheduler.async(() -> {
-
-            CustomImage[] images;
-            synchronized (IMAGES) {
-                images = IMAGES.toArray(EMPTY_IMAGES_ARRAY);
-            }
-
-            for (CustomImage image : images) {
-                image.remove(player, false);
-            }
-        });
+        LAST_MOVE_TIMES.remove(player.getUniqueId());
+        forgetPlayer(player);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -245,6 +239,7 @@ public class Images extends JavaPlugin implements Listener {
         Location location = event.getRespawnLocation();
         Scheduler.laterAsync(() -> {
 
+            if (!isCurrent(player)) return;
             CustomImage[] images;
             synchronized (IMAGES) {
                 images = IMAGES.toArray(EMPTY_IMAGES_ARRAY);
@@ -477,7 +472,30 @@ public class Images extends JavaPlugin implements Listener {
         }
     }
 
+    private static boolean isCurrent(Player player) {
+        return Bukkit.getPlayer(player.getUniqueId()) == player;
+    }
+
+    private static void forgetPlayer(Player player) {
+
+        CustomImage[] images;
+        synchronized (IMAGES) {
+            images = IMAGES.toArray(EMPTY_IMAGES_ARRAY);
+        }
+
+        for (CustomImage image : images) {
+            image.remove(player, false);
+        }
+    }
+
     private void refreshImages(Player player, Location location) {
+
+        // A delayed task may still hold the Player object of a previous connection
+        // of the same UUID; showing images to it would mark them as shown for the
+        // UUID while the packets go to a dead connection
+        if (!isCurrent(player)) {
+            return;
+        }
 
         CustomImage[] images;
         synchronized (IMAGES) {
