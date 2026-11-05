@@ -81,8 +81,20 @@ class PacketListener extends com.andavin.images.PacketListener<ServerboundIntera
     protected void setEntityListener(Player player, ImageListener listener) {
         ServerGamePacketListenerImpl connection = ((CraftPlayer) player).getHandle().connection;
         Connection internal = getFieldValue(CONNECTION, connection);
-        internal.channel.pipeline().addBefore("packet_handler", "image_handler",
-                new PlayerConnectionProxy(connection, listener, this));
+        io.netty.channel.Channel channel = internal.channel;
+        // The player may have disconnected before this delayed task ran, in which
+        // case Netty has already removed the pipeline handlers
+        if (channel == null || !channel.isOpen() || channel.pipeline().get("packet_handler") == null
+                || channel.pipeline().get("image_handler") != null) {
+            return;
+        }
+
+        try {
+            channel.pipeline().addBefore("packet_handler", "image_handler",
+                    new PlayerConnectionProxy(connection, listener, this));
+        } catch (java.util.NoSuchElementException ignored) {
+            // Channel closed concurrently while adding the handler
+        }
     }
 
     @Override
